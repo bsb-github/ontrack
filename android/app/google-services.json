@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "444509202678",
+    "firebase_url": "https://fir-auth-91a42-default-rtdb.firebaseio.com",
+    "project_id": "fir-auth-91a42",
+    "storage_bucket": "fir-auth-91a42.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:444509202678:android:8a72e4101036fbfd3824d7",
+        "android_client_info": {
+          "package_name": "com.example.ontrack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "444509202678-b0d3hquj6tf46ogkb1jkeis1qc8sl81b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYCIAlaSjqWonXLH2_RsX9DsNUBZpGyAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "444509202678-b0d3hquj6tf46ogkb1jkeis1qc8sl81b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
