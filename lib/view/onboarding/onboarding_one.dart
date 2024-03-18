@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ontrack/services/step_counter_service.dart';
 import 'package:ontrack/utils/app_contants.dart';
 import 'package:ontrack/utils/common_button.dart';
 import 'package:ontrack/view/onboarding/onboarding_n.dart';
@@ -83,11 +84,12 @@ class _OnboardingOneState extends ConsumerState<OnboardingOne> {
                         child: Consumer(
                           builder: (context, reff, child) => CommonButton(
                               onPressed: () {
-                                context.goNamed(Onboarding.routeName);
                                 ref
                                     .read(stepProvider.notifier)
                                     .getStepsFor7day();
-                                //  fetchStepData();
+
+                                context.goNamed(Onboarding.routeName);
+
                                 // context.goNamed(Onboarding.routeName);
                               },
                               text: "Next"),

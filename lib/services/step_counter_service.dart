@@ -44,6 +44,8 @@ Future<int> fetchStepData(DateTime startTime, DateTime endTime) async {
         HealthDataType.STEPS,
         HealthDataType.BODY_FAT_PERCENTAGE,
         HealthDataType.SLEEP_SESSION,
+        HealthDataType.ACTIVE_ENERGY_BURNED,
+        HealthDataType.BODY_MASS_INDEX,
         HealthDataType.WEIGHT,
         HealthDataType.WORKOUT
       ]) ??
@@ -53,6 +55,8 @@ Future<int> fetchStepData(DateTime startTime, DateTime endTime) async {
       HealthDataType.STEPS,
       HealthDataType.BODY_FAT_PERCENTAGE,
       HealthDataType.SLEEP_SESSION,
+      HealthDataType.ACTIVE_ENERGY_BURNED,
+      HealthDataType.BODY_MASS_INDEX,
       HealthDataType.WEIGHT,
       HealthDataType.WORKOUT
     ]);

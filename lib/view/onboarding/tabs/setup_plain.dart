@@ -59,13 +59,32 @@ class _SetupBioState extends ConsumerState<SetupPlain> {
             ),
           ),
           SizedBox(height: 30),
-          IncrementDecrementContainer(
-            text: 'Plan Name',
-            value: ref.watch(planNameProvider),
-            onIncrement: () =>
-                ref.read(planNameProvider.notifier).incrementPlanName(),
-            onDecrement: () =>
-                ref.read(planNameProvider.notifier).decrementPlanName(),
+          TextFormField(
+            initialValue: ref.watch(planNameProvider),
+            onChanged: (value) {
+              ref.read(planNameProvider.notifier).updatePlanName(value);
+            },
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+            ),
+            decoration: InputDecoration(
+              labelText: 'Plan Name',
+              labelStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey, width: 0.3),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey, width: 0.3),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           ),
           SizedBox(height: 20),
           IncrementDecrementContainer(

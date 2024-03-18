@@ -2,17 +2,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ontrack/utils/color_resources.dart';
+import 'package:ontrack/view/Home/plan.dart';
+import 'package:ontrack/view/Plan/edit_plan.dart';
 
-class AddNewFoal extends StatefulWidget {
+class AddNewGoal extends StatefulWidget {
   static const String routeName = 'onboarding';
 
-  const AddNewFoal({Key? key}) : super(key: key);
+  const AddNewGoal({Key? key}) : super(key: key);
 
   @override
-  _AddNewFoalState createState() => _AddNewFoalState();
+  _AddNewGoalState createState() => _AddNewGoalState();
 }
 
-class _AddNewFoalState extends State<AddNewFoal> {
+class _AddNewGoalState extends State<AddNewGoal> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -95,60 +97,81 @@ class _AddNewFoalState extends State<AddNewFoal> {
                           ),
                           Column(
                             children: [
-                              Consumer(builder: (context, ref, child) {
-                                return SecondaryTabbar(onTabSelected: (index) {
-                                  ref
-                                      .read(selectedIndexProvider.notifier)
-                                      .state = index;
-                                });
+                              SizedBox(height: 10),
+                              CustomButton('Gym', '3x in a week',
+                                  onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return EditPlan(
+                                    planTitle: 'Gym',
+                                    planDescription: '3x in a week',
+                                    planMetricType: 'times',
+                                    planMetricValue: 3,
+                                  );
+                                }));
                               }),
-                              Consumer(builder: (context, ref, child) {
-                                return IndexedStack(
-                                  index: ref.watch(selectedIndexProvider),
-                                  children: [
-                                    ListView(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 10),
-                                      physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      children: [
-                                        CustomButton('goal', 'subtitle1'),
-                                        CustomButton('goal', 'subtitle1'),
-                                      ],
-                                    ),
-                                    ListView(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 10),
-                                      physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      children: [
-                                        CustomButton('goal', 'subtitle2'),
-                                        CustomButton('goal', 'subtitle2'),
-                                      ],
-                                    ),
-                                    ListView(
-                                      physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 10),
-                                      children: [
-                                        CustomButton('goal', 'subtitle3'),
-                                        CustomButton('goal', 'subtitle3'),
-                                      ],
-                                    ),
-                                    ListView(
-                                      physics: NeverScrollableScrollPhysics(),
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 10),
-                                      shrinkWrap: true,
-                                      children: [
-                                        CustomButton('goal', 'subtitl4'),
-                                        CustomButton('goal', 'subtitle4'),
-                                      ],
-                                    ),
-                                  ],
-                                );
+                              CustomButton('Sleep', "8hrs a day",
+                                  onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return EditPlan(
+                                    planTitle: 'Sleep',
+                                    planDescription: '8hrs a day',
+                                    planMetricType: 'hrs',
+                                    planMetricValue: 8,
+                                  );
+                                }));
                               }),
+                              CustomButton(
+                                  'Calories', "2000 Calories in a week",
+                                  onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return EditPlan(
+                                    planTitle: 'Calories',
+                                    planDescription: '2000 Calories in a week',
+                                    planMetricType: 'cals',
+                                    planMetricValue: 2000,
+                                  );
+                                }));
+                              }),
+                              CustomButton('Protein', '130g Protein in a day',
+                                  onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return EditPlan(
+                                    planTitle: 'Protien',
+                                    planDescription: '130 Calories in a week',
+                                    planMetricType: 'grams',
+                                    planMetricValue: 130,
+                                  );
+                                }));
+                              }),
+                              CustomButton('Weight Loss', "10k steps a day",
+                                  onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return EditPlan(
+                                    planTitle: 'Weight Loss',
+                                    planDescription: '',
+                                    planMetricType: 'k',
+                                    planMetricValue: 10,
+                                  );
+                                }));
+                              }),
+                              CustomButton('Muscle Mass', '200g week',
+                                  onPressed: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (context) {
+                                  return EditPlan(
+                                    planTitle: 'Muscle Mass',
+                                    planDescription: '200g week',
+                                    planMetricType: 'gram',
+                                    planMetricValue: 200,
+                                  );
+                                }));
+                              }),
+                              SizedBox(height: 10),
                             ],
                           ),
                         ],
@@ -164,65 +187,64 @@ class _AddNewFoalState extends State<AddNewFoal> {
     );
   }
 
-  Widget CustomButton(String goal, String subtitle) {
-    return Consumer(
-      builder: (context, ref, child) {
-        return Container(
-          height: 80,
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            color: Color.fromARGB(143, 51, 91, 124),
-            child: ListTile(
-              contentPadding:
-                  EdgeInsets.only(left: 10, right: 10, top: 2, bottom: 10),
-              leading: Image.asset(
-                'assets/images/background.png',
-                height: 40,
-              ),
-              title: Text(
-                goal,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 19,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              subtitle: Text(
-                subtitle,
-                style: TextStyle(
-                  color: Color.fromARGB(255, 240, 228, 228),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-              trailing: Theme(
-                data: ThemeData(
-                  useMaterial3: true,
-                ),
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: Text(
-                    'Edit',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 69, 139, 219),
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromARGB(79, 33, 131, 170),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+//   Widget CustomButton(String goal, String subtitle) {
+//     return Consumer(
+//       builder: (context, ref, child) {
+//         return Container(
+//           height: 80,
+//           child: Card(
+//             shape: RoundedRectangleBorder(
+//               borderRadius: BorderRadius.circular(10),
+//             ),
+//             color: Color.fromARGB(143, 51, 91, 124),
+//             child: ListTile(
+//               contentPadding:
+//                   EdgeInsets.only(left: 10, right: 10, top: 2, bottom: 10),
+//               leading: Image.asset(
+//                 'assets/images/background.png',
+//                 height: 40,
+//               ),
+//               title: Text(
+//                 goal,
+//                 style: TextStyle(
+//                   color: Colors.white,
+//                   fontSize: 19,
+//                   fontWeight: FontWeight.w400,
+//                 ),
+//               ),
+//               subtitle: Text(
+//                 subtitle,
+//                 style: TextStyle(
+//                   color: Color.fromARGB(255, 240, 228, 228),
+//                   fontSize: 13,
+//                   fontWeight: FontWeight.w300,
+//                 ),
+//               ),
+//               trailing: Theme(
+//                 data: ThemeData(
+//                   useMaterial3: true,
+//                 ),
+//                 child: ElevatedButton(
+//                   onPressed: () {},
+//                   child: Text(
+//                     'Edit',
+//                     style: TextStyle(
+//                       color: Color.fromARGB(255, 69, 139, 219),
+//                     ),
+//                   ),
+//                   style: ElevatedButton.styleFrom(
+//                     backgroundColor: Color.fromARGB(79, 33, 131, 170),
+//                     shape: RoundedRectangleBorder(
+//                       borderRadius: BorderRadius.circular(10),
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         );
+//       },
+//     );
 }
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);

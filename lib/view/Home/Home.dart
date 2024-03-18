@@ -1,10 +1,18 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:health/health.dart';
+import 'package:intl/intl.dart';
 import 'package:ontrack/data/modals/goal_modal.dart';
 import 'package:ontrack/helper/progress_helper.dart';
 import 'package:ontrack/utils/app_contants.dart';
 import 'package:ontrack/utils/color_resources.dart';
+import 'package:ontrack/view/goal/goal_info.dart';
+import 'package:ontrack/view/profile/profile.dart';
 import 'package:ontrack/view_model/health/steps_provider.dart';
+
+import '../../view_model/health/body_data_provider.dart';
 
 const double paddingValue = 8.0;
 const double avatarRadius = 20.0;
@@ -14,6 +22,11 @@ const double progressIndicatorValue = 0.5;
 var stepProvider =
     StateNotifierProvider<StepsProvider, List<Map<String, String>>>((ref) {
   return StepsProvider();
+});
+
+var bodyDataProvider = StateNotifierProvider<BodyDataProvider,
+    List<Map<String, List<HealthDataPoint>>>>((ref) {
+  return BodyDataProvider();
 });
 
 class Home extends ConsumerStatefulWidget {
@@ -26,6 +39,15 @@ class Home extends ConsumerStatefulWidget {
 class _HomeState extends ConsumerState<Home> {
   bool loading = true;
   final List<String> daysOfWeek = ['Su', 'M', 'T', 'W', 'Th', 'F', 'S'];
+  final List<Map<String, String>> dayNames = [
+    {'dayLabel': 'Su', 'day': 'Sunday'},
+    {'dayLabel': 'M', 'day': 'Monday'},
+    {'dayLabel': 'T', 'day': 'Tuesday'},
+    {'dayLabel': 'W', 'day': 'Wednesday'},
+    {'dayLabel': 'Th', 'day': 'Thursday'},
+    {'dayLabel': 'F', 'day': 'Friday'},
+    {'dayLabel': 'S', 'day': 'Saturday'},
+  ];
   @override
   void initState() {
     // TODO: implement initState
@@ -35,6 +57,8 @@ class _HomeState extends ConsumerState<Home> {
   @override
   Widget build(BuildContext context) {
     final currentDay = DateTime.now().weekday - 1;
+    // ref.read(stepProvider.notifier).getStepsFor7day();
+    print("1");
     print(currentDay);
     return Container(
       height: MediaQuery.of(context).size.height,
@@ -65,19 +89,32 @@ class _HomeState extends ConsumerState<Home> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                subtitle: Text(
-                  'You can easily track your progress here',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
+                subtitle: InkWell(
+                  onTap: () {
+                    print(ref
+                        .read(stepProvider)
+                        .where((element) =>
+                            element['day']!.toLowerCase() ==
+                            dayNames.first['day']!.toLowerCase())
+                        .first['steps']);
+                    print(dayNames.first['day']!.toLowerCase());
+                  },
+                  child: Text(
+                    'You can easily track your progress here',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
                 trailing: InkWell(
                   onTap: () {
-                    ref.read(stepProvider.notifier).getStepsFor7day();
-
-                    print("1");
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Profile(),
+                        ));
                   },
                   child: CircleAvatar(
                     radius: avatarRadius,
@@ -89,22 +126,29 @@ class _HomeState extends ConsumerState<Home> {
                 height: 20,
               ),
               Row(
-                children: daysOfWeek.map((day) {
+                children: dayNames.map((day) {
                   return Expanded(
-                    child: Consumer(
-                      builder: (context, ref, child) => DayOfWeekContainer(
-                        day: day,
-                        progressIndicatorValue: getStepsForSpecificDay(
-                            ref.read(stepProvider),
-                            daysOfWeek,
-                            daysOfWeek.indexOf(day),
-                            currentDay),
+                    child: Consumer(builder: (context, ref, child) {
+                      print(day['day']!);
+                      var data = ref
+                              .read(stepProvider)
+                              .where((element) => element['day'] == day['day'])
+                              .isEmpty
+                          ? '0'
+                          : ref
+                              .read(stepProvider)
+                              .where((element) => element['day'] == day['day'])
+                              .first['steps'];
+                      return DayOfWeekContainer(
+                        day: day['dayLabel']! == 'Th' ? "T" : day['dayLabel']!,
+                        progressIndicatorValue: int.parse(data!) / 10000,
                         date: DateTime.now().day +
-                            daysOfWeek.indexOf(day) -
-                            currentDay,
-                        isSelected: currentDay == daysOfWeek.indexOf(day),
-                      ),
-                    ),
+                            dayNames.indexOf(day) -
+                            currentDay -
+                            1,
+                        isSelected: currentDay + 1 == dayNames.indexOf(day),
+                      );
+                    }),
                   );
                 }).toList(),
               ),
@@ -129,7 +173,7 @@ class CardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
-      itemCount: 4,
+      itemCount: user!.goal!.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 10,
@@ -142,6 +186,15 @@ class CardGrid extends StatelessWidget {
           ),
           color: Color.fromARGB(117, 31, 39, 100),
           child: CustomHomeWidget(
+            () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GoalInfo(
+                      goal: user!.goal![index],
+                    ),
+                  ));
+            },
             goal: user!.goal!.first,
             progressIndicatorValue: 0.5,
           ),
@@ -154,7 +207,9 @@ class CardGrid extends StatelessWidget {
 class CustomHomeWidget extends ConsumerWidget {
   final Goal goal;
   final double progressIndicatorValue;
-  CustomHomeWidget({
+  final VoidCallback onTap;
+  CustomHomeWidget(
+    this.onTap, {
     required this.goal,
     required this.progressIndicatorValue,
   });
@@ -164,100 +219,135 @@ class CustomHomeWidget extends ConsumerWidget {
     return Padding(
       padding:
           const EdgeInsets.symmetric(horizontal: paddingValue, vertical: 5.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const CircleAvatar(
-                radius: avatarRadius,
-                backgroundImage: AssetImage('assets/images/background.png'),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              int.parse(ref
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const CircleAvatar(
+                  radius: avatarRadius,
+                  backgroundImage: AssetImage('assets/images/daily_step.png'),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                Column(
+                  children: [
+                    Text(
+                      goal.goalName!.split(' ')[0] + "s",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      goal.goalSubtile!,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                int.parse(ref
+                                .read(stepProvider)
+                                .where((element) =>
+                                    element['day']!.toLowerCase() ==
+                                    DateFormat('EEEE')
+                                        .format(DateTime.now())
+                                        .toLowerCase())
+                                .first["steps"]!) /
+                            int.parse(goal.goalValue!) >=
+                        1
+                    ? Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: ColorResources.green,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: Text(
+                            "Completed",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ))
+                    : SizedBox(),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Text(
+                    ref
+                        .read(stepProvider)
+                        .where((element) =>
+                            element['day'] ==
+                            DateFormat('EEEE').format(DateTime.now()))
+                        .first["steps"]!,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    child: LinearProgressIndicator(
+                      minHeight: progressIndicatorMinHeight,
+                      backgroundColor: Color.fromARGB(255, 25, 74, 114),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        (int.parse(ref
+                                        .read(stepProvider)
+                                        .where((element) =>
+                                            element['day'] ==
+                                            DateFormat('EEEE')
+                                                .format(DateTime.now()))
+                                        .first["steps"]!) /
+                                    int.parse(goal.goalValue!)) >
+                                1
+                            ? ColorResources.green
+                            : Color.fromARGB(255, 201, 45, 115),
+                      ),
+                      value: (int.parse(ref
                               .read(stepProvider)
                               .where((element) => element['day'] == 'Sunday')
                               .first["steps"]!) /
-                          int.parse(goal.goalValue!) >=
-                      1
-                  ? Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color: ColorResources.green,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: Text(
-                          "Completed",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ))
-                  : SizedBox(),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                goal.goalName!,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              Text(
-                goal.goalSubtile!,
-                style: TextStyle(
-                  color: Color.fromARGB(255, 188, 188, 188),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                  child: LinearProgressIndicator(
-                    minHeight: progressIndicatorMinHeight,
-                    backgroundColor: Color.fromARGB(255, 25, 74, 114),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      (int.parse(ref
-                                      .read(stepProvider)
-                                      .where((element) =>
-                                          element['day'] == 'Sunday')
-                                      .first["steps"]!) /
-                                  int.parse(goal.goalValue!)) >
-                              1
-                          ? ColorResources.green
-                          : Color.fromARGB(255, 201, 45, 115),
+                          int.parse(goal.goalValue!)),
                     ),
-                    value: (int.parse(ref
-                            .read(stepProvider)
-                            .where((element) => element['day'] == 'Sunday')
-                            .first["steps"]!) /
-                        int.parse(goal.goalValue!)),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: paddingValue),
-                child: Text(
-                  "${((int.parse(ref.read(stepProvider).where((element) => element['day'] == 'Sunday').first["steps"]!) / int.parse(goal.goalValue!)) * 100).toStringAsFixed(0)}%",
-                  style: TextStyle(color: Colors.white),
+                Padding(
+                  padding: const EdgeInsets.only(left: paddingValue),
+                  child: Text(
+                    "${((int.parse(ref.read(stepProvider).where((element) => element['day'] == DateFormat('EEEE').format(DateTime.now())).first["steps"]!) / int.parse(goal.goalValue!)) * 100).toStringAsFixed(0)}%",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-              ),
-            ],
-          )
-        ],
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

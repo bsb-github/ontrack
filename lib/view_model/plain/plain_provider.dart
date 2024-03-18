@@ -1,26 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PlanNameNotifier extends StateNotifier<String> {
-  List<String> plan = [
-    'Get fit for summer',
-    'Get fit for winter',
-    'Get fit for 1',
-    'Get fit for 2',
-  ];
-  int planIndex = 0;
+  PlanNameNotifier() : super('Plan Name');
 
-  PlanNameNotifier() : super('Get fit for summer');
-
-  void incrementPlanName() {
-    if (planIndex < 3) {
-      state = plan[++planIndex];
-    }
-  }
-
-  void decrementPlanName() {
-    if (planIndex > 0) {
-      state = plan[--planIndex];
-    }
+  void updatePlanName(String name) {
+    state = name;
   }
 }
 
