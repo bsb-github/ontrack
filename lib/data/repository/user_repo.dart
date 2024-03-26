@@ -10,6 +10,7 @@ class UserRepo {
     var id = prefs.getString("device_id");
     try {
       await store.collection('users').doc(id).set(user.toJson());
+      prefs.setBool("user_logged_in", true);
       EasyLoading.dismiss();
       return true;
     } on FirebaseException catch (e) {

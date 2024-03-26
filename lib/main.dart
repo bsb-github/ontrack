@@ -5,8 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ontrack/firebase_options.dart';
 import 'package:ontrack/utils/color_resources.dart';
 import 'package:ontrack/utils/routes.dart';
+import 'package:ontrack/view/onboarding/onboarding_one.dart';
+import 'package:ontrack/view_model/user/user_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+
+import 'data/modals/user_model.dart';
+import 'view/Home/home_page_collapse.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,17 +30,24 @@ void main() async {
   runApp(ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatefulWidget {
+var userProvider = StateNotifierProvider<UserProvider, User?>((ref) {
+  return UserProvider();
+});
+
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
+  late Widget home;
+  var isLoading = true;
   @override
   void initState() {
     super.initState();
+    init();
   }
 
   void init() async {
@@ -44,20 +56,36 @@ class _MyAppState extends State<MyApp> {
     if (!firstTime) {
       var id = Uuid().v1();
       pref.setString('device_id', id);
+      setState(() {
+        home = OnboardingOne();
+        isLoading = false;
+      });
     } else {
-      // get data from firebase
+      var id = pref.getString('device_id');
+      await ref.read(userProvider.notifier).getUserData(id!);
+      setState(() {
+        home = HomePageCollapse();
+        isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routeInformationParser: router.routeInformationParser,
-      routerDelegate: router.routerDelegate,
-      routeInformationProvider: router.routeInformationProvider,
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'OnTrack',
       builder: EasyLoading.init(),
+      home: isLoading
+          ? Scaffold(
+              backgroundColor: Colors.black,
+              body: Center(
+                child: CircularProgressIndicator(
+                  color: ColorResources.gradientColor,
+                ),
+              ),
+            )
+          : home,
     );
   }
 }

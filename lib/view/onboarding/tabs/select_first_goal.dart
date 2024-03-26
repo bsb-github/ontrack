@@ -9,6 +9,7 @@ import 'package:ontrack/utils/common_button.dart';
 import 'package:ontrack/view/Home/Home.dart';
 import 'package:ontrack/view/Home/home_page_collapse.dart';
 import 'package:ontrack/view/onboarding/onboarding_n.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final goalSelectionProvider =
     StateNotifierProvider<GoalSelectionNotifier, String>((ref) {
@@ -129,6 +130,9 @@ class _SetupBioState extends ConsumerState<SelectFirstGoal> {
                   var status = await UserRepo().registerDevice(user!);
                   if (status) {
                     print("success");
+                    var pref = await SharedPreferences.getInstance();
+                    pref.setBool('isFirstTime', true);
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(

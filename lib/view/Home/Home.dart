@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -11,7 +13,10 @@ import 'package:ontrack/utils/color_resources.dart';
 import 'package:ontrack/view/goal/goal_info.dart';
 import 'package:ontrack/view/profile/profile.dart';
 import 'package:ontrack/view_model/health/steps_provider.dart';
+import 'package:ontrack/view_model/user/user_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/modals/user_model.dart';
 import '../../view_model/health/body_data_provider.dart';
 
 const double paddingValue = 8.0;
@@ -22,6 +27,10 @@ const double progressIndicatorValue = 0.5;
 var stepProvider =
     StateNotifierProvider<StepsProvider, List<Map<String, String>>>((ref) {
   return StepsProvider();
+});
+
+final userProvider = StateNotifierProvider<UserProvider, User?>((ref) {
+  return UserProvider();
 });
 
 var bodyDataProvider = StateNotifierProvider<BodyDataProvider,
@@ -52,12 +61,26 @@ class _HomeState extends ConsumerState<Home> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    getData();
+    setState(() {});
+  }
+
+  void getData() async {
+    var prefs = await SharedPreferences.getInstance();
+    var device_id = prefs.getString('device_id');
+    await ref.read(userProvider.notifier).getUserData(device_id!);
+    await ref.watch(stepProvider.notifier).getStepsFor7day();
+    Timer(Duration(seconds: 1), () {
+      setState(() {
+        loading = false;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final currentDay = DateTime.now().weekday - 1;
-    // ref.read(stepProvider.notifier).getStepsFor7day();
+
     print("1");
     print(currentDay);
     return Container(
@@ -75,93 +98,112 @@ class _HomeState extends ConsumerState<Home> {
           ],
         ),
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(paddingValue),
-          child: Column(
-            children: [
-              ListTile(
-                title: Text(
-                  'Home',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: InkWell(
-                  onTap: () {
-                    print(ref
-                        .read(stepProvider)
-                        .where((element) =>
-                            element['day']!.toLowerCase() ==
-                            dayNames.first['day']!.toLowerCase())
-                        .first['steps']);
-                    print(dayNames.first['day']!.toLowerCase());
-                  },
-                  child: Text(
-                    'You can easily track your progress here',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
+      child: loading
+          ? Center(
+              child: CircularProgressIndicator(
+              color: ColorResources.gradientColor,
+            ))
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(paddingValue),
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text(
+                        'Home',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: InkWell(
+                        onTap: () async {
+                          print(ref
+                              .read(stepProvider)
+                              .where((element) =>
+                                  element['day']!.toLowerCase() ==
+                                  dayNames.first['day']!.toLowerCase())
+                              .first['steps']);
+                          var prefs = await SharedPreferences.getInstance();
+                          var device_id = prefs.getString('device_id');
+                          // print(dayNames.first['day']!.toLowerCase());
+                          await ref
+                              .read(userProvider.notifier)
+                              .getUserData(device_id!);
+                          print(ref.read(userProvider)!.goal!.first.goalName);
+                          ref.read(stepProvider.notifier).getStepsFor7day();
+                        },
+                        child: Text(
+                          'You can easily track your progress here',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      trailing: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Profile(),
+                              ));
+                        },
+                        child: CircleAvatar(
+                          radius: avatarRadius,
+                          backgroundImage:
+                              AssetImage('assets/images/background.png'),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Row(
+                      children: dayNames.map((day) {
+                        return Expanded(
+                          child: Consumer(builder: (context, ref, child) {
+                            print(day['day']!);
+
+                            return DayOfWeekContainer(
+                              day: day['dayLabel']! == 'Th'
+                                  ? "T"
+                                  : day['dayLabel']!,
+                              progressIndicatorValue: int.parse(ref
+                                          .watch(stepProvider)
+                                          .where((element) =>
+                                              element['day'] == day['day'])
+                                          .isEmpty
+                                      ? '0'
+                                      : ref
+                                          .watch(stepProvider)
+                                          .where((element) =>
+                                              element['day'] == day['day'])
+                                          .first['steps']!) /
+                                  10000,
+                              date: DateTime.now().day +
+                                  dayNames.indexOf(day) -
+                                  currentDay -
+                                  1,
+                              isSelected:
+                                  currentDay + 1 == dayNames.indexOf(day),
+                            );
+                          }),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Expanded(
+                      child: CardGrid(),
+                    ),
+                  ],
                 ),
-                trailing: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Profile(),
-                        ));
-                  },
-                  child: CircleAvatar(
-                    radius: avatarRadius,
-                    backgroundImage: AssetImage('assets/images/background.png'),
-                  ),
-                ),
               ),
-              const SizedBox(
-                height: 20,
-              ),
-              Row(
-                children: dayNames.map((day) {
-                  return Expanded(
-                    child: Consumer(builder: (context, ref, child) {
-                      print(day['day']!);
-                      var data = ref
-                              .read(stepProvider)
-                              .where((element) => element['day'] == day['day'])
-                              .isEmpty
-                          ? '0'
-                          : ref
-                              .read(stepProvider)
-                              .where((element) => element['day'] == day['day'])
-                              .first['steps'];
-                      return DayOfWeekContainer(
-                        day: day['dayLabel']! == 'Th' ? "T" : day['dayLabel']!,
-                        progressIndicatorValue: int.parse(data!) / 10000,
-                        date: DateTime.now().day +
-                            dayNames.indexOf(day) -
-                            currentDay -
-                            1,
-                        isSelected: currentDay + 1 == dayNames.indexOf(day),
-                      );
-                    }),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Expanded(
-                child: CardGrid(),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
@@ -171,35 +213,37 @@ class CardGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      itemCount: user!.goal!.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+    return Consumer(
+      builder: (context, ref, child) => GridView.builder(
+        shrinkWrap: true,
+        itemCount: ref.watch(userProvider)!.goal!.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+        ),
+        itemBuilder: (context, index) {
+          return Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(cardBorderRadius),
+            ),
+            color: Color.fromARGB(117, 31, 39, 100),
+            child: CustomHomeWidget(
+              () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => GoalInfo(
+                        goal: ref.watch(userProvider)!.goal![index],
+                      ),
+                    ));
+              },
+              goal: ref.watch(userProvider)!.goal!.first,
+              progressIndicatorValue: 0.5,
+            ),
+          );
+        },
       ),
-      itemBuilder: (context, index) {
-        return Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(cardBorderRadius),
-          ),
-          color: Color.fromARGB(117, 31, 39, 100),
-          child: CustomHomeWidget(
-            () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GoalInfo(
-                      goal: user!.goal![index],
-                    ),
-                  ));
-            },
-            goal: user!.goal!.first,
-            progressIndicatorValue: 0.5,
-          ),
-        );
-      },
     );
   }
 }
@@ -262,7 +306,7 @@ class CustomHomeWidget extends ConsumerWidget {
                   width: 10,
                 ),
                 int.parse(ref
-                                .read(stepProvider)
+                                .watch(stepProvider)
                                 .where((element) =>
                                     element['day']!.toLowerCase() ==
                                     DateFormat('EEEE')
@@ -294,7 +338,7 @@ class CustomHomeWidget extends ConsumerWidget {
                   alignment: Alignment.bottomCenter,
                   child: Text(
                     ref
-                        .read(stepProvider)
+                        .watch(stepProvider)
                         .where((element) =>
                             element['day'] ==
                             DateFormat('EEEE').format(DateTime.now()))
@@ -318,7 +362,7 @@ class CustomHomeWidget extends ConsumerWidget {
                       backgroundColor: Color.fromARGB(255, 25, 74, 114),
                       valueColor: AlwaysStoppedAnimation<Color>(
                         (int.parse(ref
-                                        .read(stepProvider)
+                                        .watch(stepProvider)
                                         .where((element) =>
                                             element['day'] ==
                                             DateFormat('EEEE')
@@ -330,7 +374,7 @@ class CustomHomeWidget extends ConsumerWidget {
                             : Color.fromARGB(255, 201, 45, 115),
                       ),
                       value: (int.parse(ref
-                              .read(stepProvider)
+                              .watch(stepProvider)
                               .where((element) => element['day'] == 'Sunday')
                               .first["steps"]!) /
                           int.parse(goal.goalValue!)),
@@ -340,7 +384,7 @@ class CustomHomeWidget extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: paddingValue),
                   child: Text(
-                    "${((int.parse(ref.read(stepProvider).where((element) => element['day'] == DateFormat('EEEE').format(DateTime.now())).first["steps"]!) / int.parse(goal.goalValue!)) * 100).toStringAsFixed(0)}%",
+                    "${((int.parse(ref.watch(stepProvider).where((element) => element['day'] == DateFormat('EEEE').format(DateTime.now())).first["steps"]!) / int.parse(goal.goalValue!)) * 100).toStringAsFixed(0)}%",
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

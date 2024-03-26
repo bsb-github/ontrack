@@ -6,10 +6,10 @@ import 'package:ontrack/utils/app_contants.dart';
 class StepsProvider extends StateNotifier<List<Map<String, String>>> {
   StepsProvider() : super([]);
 
-  void getStepsFor7day() async {
+  Future<void> getStepsFor7day() async {
     state.clear();
-    var today = DateFormat('EEEE').format(DateTime.now());
-    var numberOfday = getDayNuumberOfWeek(today);
+    // var today = DateFormat('EEEE').format(DateTime.now());
+    // var numberOfday = getDayNuumberOfWeek(today);
     DateTime start = DateTime.now();
     int i = 0;
     int steps = 0;
@@ -26,10 +26,12 @@ class StepsProvider extends StateNotifier<List<Map<String, String>>> {
       print('Day: ${state[i]['day']} Steps: ${state[i]['steps']}');
       start = start.subtract(Duration(days: 1));
       i++;
-    } while (start.weekday >= DateTime.sunday);
+      print(DateFormat('EEEE').format(start));
+    } while (start.weekday != DateTime.saturday);
     for (var i = 0; i < AppConstants.daysOfWeekFull.length; i++) {
-      if (state
-          .any((element) => element['day'] == AppConstants.daysOfWeekFull[i])) {
+      if (state.any((element) =>
+          element['day']!.toLowerCase() ==
+          AppConstants.daysOfWeekFull[i].toLowerCase())) {
         continue;
       } else {
         state.add({

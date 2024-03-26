@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'goal_modal.dart';
 
 class User {
@@ -26,6 +28,19 @@ class User {
       goal = <Goal>[];
       json['goal'].forEach((v) {
         goal!.add(new Goal.fromJson(v));
+      });
+    }
+  }
+  User.fromSnapshot(DocumentSnapshot snapshot) {
+    age = snapshot['age'];
+    height = snapshot['height'];
+    heightMetric = snapshot['height_metric'];
+    timeZone = snapshot['time_zone'];
+    plan = snapshot['plan'] != null ? Plan.fromJson(snapshot['plan']) : null;
+    if (snapshot['goal'] != null) {
+      goal = <Goal>[];
+      snapshot['goal'].forEach((v) {
+        goal!.add(Goal.fromJson(v));
       });
     }
   }

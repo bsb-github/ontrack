@@ -88,7 +88,10 @@ class _OnboardingOneState extends ConsumerState<OnboardingOne> {
                                     .read(stepProvider.notifier)
                                     .getStepsFor7day();
 
-                                context.goNamed(Onboarding.routeName);
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => Onboarding()));
 
                                 // context.goNamed(Onboarding.routeName);
                               },

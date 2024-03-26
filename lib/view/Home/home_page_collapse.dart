@@ -5,6 +5,8 @@ import 'package:ontrack/view/Home/plan.dart';
 import 'package:ontrack/view/Home/progress.dart';
 
 class HomePageCollapse extends StatefulWidget {
+  static String pageName = 'homePageCollapse';
+  static String pagePath = '/homePageCollapse';
   const HomePageCollapse({Key? key}) : super(key: key);
 
   @override
